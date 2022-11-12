@@ -31,7 +31,7 @@ def get_lambda_directories(top_level_dir: bytes) -> List[AnyStr]:
 
 
 # noinspection PyTypeChecker
-def install_packages(directory_path: List[AnyStr]) -> None:
+def install_packages(directory_path: str) -> None:
     """Installing packages required for lambda."""
     logging.info("Begginning installation activities for %s", directory_path.rsplit('/', 1)[-1])
     # Navigate to the directory
