@@ -101,7 +101,7 @@ jobs:
 
       - name: PyTest Tolerance Check
         run: |
-          pytest --cov=. --junitxml=pytest.xml --cov-report=term-missing:skip-covered --ignore=infra/cdk/cdk.out/ --cov-fail-under=30 .
+          pytest --cov=. --junitxml=pytest.xml --cov-report=term-missing:skip-covered --ignore=infra/cdk/cdk.out/ --cov-fail-under=02 .
 
       - name: Config PyTest Runner
         run: |
