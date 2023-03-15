@@ -34,6 +34,36 @@ class LambdaConstruct:
         )
 
     @staticmethod
+    def create_lambda_function(
+            stack: Stack,
+            config: dict,
+            lambda_name: str,
+            role: iam.Role,
+            env_vars: dict,
+            duration: Duration,
+            memory_size: int = None) -> aws_lambda.Function:
+        """Methods for generic lambda creation."""
+
+        lambda_path = config['global'][f"{lambda_name}HndlrPath"]
+        handler = config['global'][f"{lambda_name}Hndlr"]
+        function_id = f"{config['global']['app-name']}-{lambda_name}-Id"
+        function_name = f"{config['global']['app-name']}-{lambda_name}"
+
+        dict_props = {
+            "function_name": function_name,
+            "code": aws_lambda.Code.from_asset(path=lambda_path),
+            "handler": handler,
+            "runtime": aws_lambda.Runtime.PYTHON_3_8,
+            "role": role,
+            "environment": env_vars,
+            "timeout": duration,
+            "memory_size": memory_size, 
+            "architecture": aws_lambda.Architecture.X86_64
+        }
+
+        return aws_lambda.Function(scope=stack, id=function_id, **dict_props)
+
+    @staticmethod
     def get_sfn_execute_policy(step_function_arn: str) -> iam.PolicyStatement:
         """Returns policy statements for executing step function."""
         policy_statement = iam.PolicyStatement()

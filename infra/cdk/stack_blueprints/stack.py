@@ -101,3 +101,5 @@ class MainProjectStack(aws_cdk.Stack):
             duration=aws_cdk.Duration.minutes(amount=15),
             memory_size=3008
         )
+
+        return lambdas
