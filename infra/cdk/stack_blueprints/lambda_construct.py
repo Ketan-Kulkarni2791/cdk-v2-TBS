@@ -1,6 +1,5 @@
 """Code for generation and deploy lambda to AWS"""
 import json
-from typing import List
 import aws_cdk.aws_iam as iam
 import aws_cdk.aws_lambda as aws_lambda
 from aws_cdk import Stack, Duration
@@ -29,7 +28,6 @@ class LambdaConstruct:
             config=config,
             lambda_name=lambda_name,
             role=role,
-            layer=layer,
             env_vars=env_vars,
             memory_size=memory_size,
             duration=duration
