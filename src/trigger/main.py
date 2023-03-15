@@ -20,6 +20,9 @@ def lambda_handler(event: dict, _context: dict) -> dict:
     if event:
         try:
             logging.info("This is the event we received: %s", event)
+            return {
+                "Message": "Success"
+            }
 
         # In case an error is encountered even when a correct event is present ---------
         except Exception as error:

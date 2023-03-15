@@ -16,7 +16,6 @@ class LambdaConstruct:
             config: dict,
             lambda_name: str,
             role: iam.Role,
-            layer: List[aws_lambda.LayerVersion] = None,
             memory_size: int = None,
             duration: Duration = None) -> aws_lambda.Function:
         """Method called by construct for creating lambda."""

@@ -25,7 +25,7 @@ class MainProjectStack(aws_cdk.Stack):
 
         print(env)
         # Lambda Layers --------------------------------------------------------
-        layer = MainProjectStack.create_layers_for_lambdas(
+        MainProjectStack.create_layers_for_lambdas(
             stack=stack,
             config=config
         )
@@ -33,8 +33,7 @@ class MainProjectStack(aws_cdk.Stack):
         # Infra for Lambda function creation -------------------------------------
         lambdas = MainProjectStack.create_lambda_functions(
             stack=stack,
-            config=config,
-            layers=layer
+            config=config
         )
         print(lambdas)
 
@@ -66,8 +65,7 @@ class MainProjectStack(aws_cdk.Stack):
     @staticmethod
     def create_lambda_functions(
             stack: aws_cdk.Stack,
-            config: dict,
-            layers: Dict[str, _lambda.LayerVersion] = None) -> Dict[str, _lambda.Function]:
+            config: dict) -> Dict[str, _lambda.Function]:
         """Create placeholder lambda function and roles."""
 
         lambdas = {}
@@ -100,7 +98,6 @@ class MainProjectStack(aws_cdk.Stack):
             config=config,
             lambda_name="trigger_lambda",
             role=trigger_role,
-            layer=[layers["pandas"]],
             duration=aws_cdk.Duration.minutes(amount=15),
             memory_size=3008
         )
