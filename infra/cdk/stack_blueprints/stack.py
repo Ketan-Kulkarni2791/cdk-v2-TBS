@@ -2,13 +2,10 @@
 from typing import Dict, Any
 import aws_cdk
 from constructs import Construct
-import aws_cdk.aws_kms as kms
-import aws_cdk.aws_sns as sns
 import aws_cdk.aws_lambda as _lambda
 
 from .iam_construct import IAMConstruct
-from .kms_construct import KMSConstruct
-from .sns_construct import SNSConstruct
+from .lambda_construct import LambdaConstruct
 from .lambda_layer_construct import LambdaLayerConstruct
 
 
@@ -26,34 +23,6 @@ class MainProjectStack(aws_cdk.Stack):
     def create_stack(stack: aws_cdk.Stack, env: str, config: dict) -> None:
         """Create and add the resources to the application stack"""
 
-        # KMS infra setup ------------------------------------------------------
-        kms_pol_doc = IAMConstruct.get_kms_policy_document()
-
-        kms_key = KMSConstruct.create_kms_key(
-            stack=stack,
-            config=config,
-            policy_doc=kms_pol_doc
-        )
-        print(kms_key)
-
-        # SNS Infra Setup -----------------------------------------------------
-        sns_topic = MainProjectStack.setup_sns_topic(
-            config,
-            kms_key,
-            stack
-        )
-
-        # IAM Role Setup --------------------------------------------------------
-        stack_role = MainProjectStack.create_stack_role(
-            config=config,
-            stack=stack,
-            kms_key=kms_key,
-            sns_topic=sns_topic,
-            source_buckt_arn=config['global']['bucket_name'],
-            source_bucket_kms_arn=config['global']['src_kms_arn']
-        )
-        print(stack_role)
-
         # Lambda Layers --------------------------------------------------------
         layer = MainProjectStack.create_layers_for_lambdas(
             stack=stack,
@@ -64,25 +33,9 @@ class MainProjectStack(aws_cdk.Stack):
         lambdas = MainProjectStack.create_lambda_functions(
             stack=stack,
             config=config,
-            kms_key=kms_key,
-            layers=layer,
-            sns_topic=sns_topic
+            layers=layer
         )
         print(lambdas)
-
-    @staticmethod
-    def setup_sns_topic(
-            config: dict,
-            kms_key: kms.Key,
-            stack: aws_cdk.Stack) -> sns.Topic:
-        """Set up the SNS Topic and returns the SNS Topic Object."""
-        sns_topic = SNSConstruct.create_sns_topic(
-            stack=stack,
-            config=config,
-            kms_key=kms_key
-        )
-        SNSConstruct.subscribe_email(config=config, topic=sns_topic)
-        return sns_topic
 
     @staticmethod
     def create_layers_for_lambdas(
@@ -109,11 +62,44 @@ class MainProjectStack(aws_cdk.Stack):
         )
         return layers
 
-    # @staticmethod
-    # def create_lambda_functions(
-    #         stack: aws_cdk.Stack,
-    #         config: dict,
-    #         kms_key: kms.Key,
-    #         sns_topic: sns.Topic,
-    #         layers: Dict[str, _lambda.LayerVersion] = None) -> Dict[str, _lambda.Function]:
-    #     """Create placeholder lambda function and roles."""
+    @staticmethod
+    def create_lambda_functions(
+            stack: aws_cdk.Stack,
+            config: dict,
+            layers: Dict[str, _lambda.LayerVersion] = None) -> Dict[str, _lambda.Function]:
+        """Create placeholder lambda function and roles."""
+
+        lambdas = {}
+
+        trigger_policy = IAMConstruct.create_managed_policy(
+            stack=stack,
+            config=config,
+            policy_name="trigger_policy",
+            statements=[
+                LambdaConstruct.get_sfn_execute_policy(
+                    config['global']['stepFunctionArn']  
+                ),
+                LambdaConstruct.get_cloudwatch_policy(
+                    config['global']['trigger_lambdaLogsArn']
+                )
+            ]
+        )
+
+        trigger_role = IAMConstruct.create_role(
+            stack=stack,
+            config=config,
+            role_name="trigger",
+            assumed_by=["lambda"]   
+        )
+
+        trigger_role.add_managed_policy(trigger_policy)
+
+        lambdas["trigger_lambda"] = LambdaConstruct.create_lambda(
+            stack=stack,
+            config=config,
+            lambda_name="trigger_lambda",
+            role=trigger_role,
+            layer=[layers["pandas"]],
+            duration=aws_cdk.Duration.minutes(amount=15),
+            memory_size=3008
+        )
