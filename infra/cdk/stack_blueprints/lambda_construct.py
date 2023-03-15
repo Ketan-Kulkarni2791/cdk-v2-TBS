@@ -3,7 +3,6 @@ import json
 from typing import List
 import aws_cdk.aws_iam as iam
 import aws_cdk.aws_lambda as aws_lambda
-import aws_cdk.aws_logs as aws_logs
 from aws_cdk import Stack, Duration
 
 

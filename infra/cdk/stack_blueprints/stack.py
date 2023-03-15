@@ -1,8 +1,8 @@
 """Main python file_key for adding resources to the application stack."""
 from typing import Dict, Any
 import aws_cdk
-from constructs import Construct
 import aws_cdk.aws_lambda as _lambda
+from constructs import Construct
 
 from .iam_construct import IAMConstruct
 from .lambda_construct import LambdaConstruct
@@ -23,6 +23,7 @@ class MainProjectStack(aws_cdk.Stack):
     def create_stack(stack: aws_cdk.Stack, env: str, config: dict) -> None:
         """Create and add the resources to the application stack"""
 
+        print(env)
         # Lambda Layers --------------------------------------------------------
         layer = MainProjectStack.create_layers_for_lambdas(
             stack=stack,
